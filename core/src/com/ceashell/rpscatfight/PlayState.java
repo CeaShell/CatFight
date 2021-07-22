@@ -12,6 +12,8 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
 //import com.ceashell.rpscatfight.Animation;
 
 import java.util.Random;
+
+import static com.ceashell.rpscatfight.Cat.CatState.dead;
 import static com.ceashell.rpscatfight.RPSCatFight.FONT;
 
 
@@ -21,20 +23,17 @@ public class PlayState extends State {
     ShapeRenderer sr;
     public String[] cats;
     int money;
-    Animation cat1;
-    Animation cat2;
     Rectangle cat1Rect;
     Rectangle cat2Rect;
     Animation catSprite;
     Texture catTexture;
-    int catHealth1;
-    int catHealth2;
     Texture healthBar1;
     Texture healthBar2;
     String catName1;
     String catName2;
-    boolean cat1Life;
-    boolean cat2Life;
+    Cat cat1;
+    Cat cat2;
+    boolean changeCatAnimation;
 
 
     public PlayState(GameStateManager gsm) {
@@ -45,40 +44,14 @@ public class PlayState extends State {
         money = 500;
         catName1 = getRandom(cats);
         catName2 = getRandom(cats);
-        cat1 = cat_walk(catName1);
-        cat2 = cat_walk(catName2);
+        cat1 = new Cat(catName1, 100, Cat.CatState.alive);
+        cat2 = new Cat(catName2, 100, Cat.CatState.alive);
         cat1Rect = new Rectangle(150, 250, 240, 126);
         cat2Rect = new Rectangle(850, 250, -240, 126);
-        catHealth1 = 100;
-        catHealth2 = 100;
         healthBar1 = new Texture("bar.png");
         healthBar2 = new Texture("bar.png");
-        cat1Life = true;
-        cat2Life = true;
     }
 
-    public Animation cat_ded(String name) {
-        try {
-            catTexture = new Texture(name + "_shleep.png");
-        }
-        catch(GdxRuntimeException e) {
-            catTexture = new Texture("paige_shleep.png");
-        }
-        TextureRegion catSrc = new TextureRegion(catTexture, 160, 42);
-        catSprite = new Animation(catSrc, 2, 1.5f);
-        return catSprite;
-    }
-
-    public Animation cat_walk(String name) {
-        try {
-            catTexture = new Texture(name + "_walk.png");
-        } catch(GdxRuntimeException e) {
-            catTexture = new Texture("paige_walk.png");
-        }
-        TextureRegion catSrc = new TextureRegion(catTexture, 400, 42);
-        catSprite = new Animation(catSrc, 5, 0.8f);
-        return catSprite;
-    }
 
     public String getRandom(String[] array) {
         Random random = new Random();
@@ -90,22 +63,21 @@ public class PlayState extends State {
     @Override
     public void render(SpriteBatch sb, ShapeRenderer sr) {
         sb.begin();
-        //sb.draw(img, boundRect.x, boundRect.y, boundRect.width, boundRect.height);
         sb.draw(background, 0, 0, RPSCatFight.WIDTH, RPSCatFight.HEIGHT);
         FONT.drawMiddle(sb, "Fight kitties FIGHT!", 0,475, RPSCatFight.WIDTH, 100, 6, 6);
-        sb.draw(cat1.getFrame(), cat1Rect.x, cat1Rect.y, cat1Rect.width, cat1Rect.height);
-        sb.draw(cat2.getFrame(), cat2Rect.x, cat2Rect.y, cat2Rect.width, cat2Rect.height);
-        sb.draw(healthBar1, 100, 470, catHealth1*2.5f, 10);
-        sb.draw(healthBar2, 940, 470, catHealth2 * -2.5f, 10);
-        if (catHealth1 <= 0) {
+        sb.draw(cat1.pickAnimation(catName1).getFrame(), cat1Rect.x, cat1Rect.y, cat1Rect.width, cat1Rect.height);
+        sb.draw(cat2.pickAnimation(catName2).getFrame(), cat2Rect.x, cat2Rect.y, cat2Rect.width, cat2Rect.height);
+        sb.draw(healthBar1, 100, 470, cat1.health*2.5f, 10);
+        sb.draw(healthBar2, 940, 470, cat2.health * -2.5f, 10);
+        if (cat1.health <= 0) {
             FONT.drawMiddle(sb, catName1 + " is Dead! Victory goes to " + catName2, 0, 350, RPSCatFight.WIDTH, 50, 4, 4);
-            cat1 = cat_ded(catName1);
-            cat1Life = false;
+            cat1.catstate = Cat.CatState.dead;
+            cat2.catstate = Cat.CatState.victorious;
         }
-        if (catHealth2 <= 0) {
+        if (cat2.health <= 0) {
             FONT.drawMiddle(sb, catName2 + " is Dead! Victory goes to " + catName1, 0, 350, RPSCatFight.WIDTH, 50, 4, 4);
-            cat2 = cat_ded(catName2);
-            cat2Life = false;
+            cat2.catstate = Cat.CatState.dead;
+            cat1.catstate = Cat.CatState.victorious;
         }
         sb.end();
     }
@@ -118,11 +90,11 @@ public class PlayState extends State {
 
             if (cat1Rect.contains(x, y)) {
                 System.out.println("Ouch! Cat1");
-                catHealth1 -= 5;
+                cat1.health -= 5;
             }
             if(cat2Rect.contains(x,y)) {
                 System.out.println("Ouch! Cat2");
-                catHealth2 -= 5;
+                cat2.health -= 5;
             }
 //            Gdx.app.debug("POSITION", "X touched: " + x + " Y touched: " + y);
             System.out.println("Click done " + x + " " + y);
@@ -130,7 +102,7 @@ public class PlayState extends State {
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
             System.out.println("Ouch! Cat2");
-            catHealth2 -= 5;
+            cat2.health -= 5;
             System.out.println(cat2Rect);
             System.out.println( Gdx.graphics.getDisplayMode().width);
             System.out.println( Gdx.graphics.getDisplayMode().height);
@@ -140,8 +112,8 @@ public class PlayState extends State {
     @Override
     public void update(float deltaTime) {
         handleInput();
-        cat1.update(deltaTime);
-        cat2.update(deltaTime);
+        cat1.pickAnimation(catName1).update(deltaTime);
+        cat2.pickAnimation(catName2).update(deltaTime);
     }
 
     @Override

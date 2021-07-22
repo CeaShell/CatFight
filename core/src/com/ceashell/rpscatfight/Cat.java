@@ -6,38 +6,66 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
 
 public class Cat {
     String name;
-    boolean alive;
     int health;
     Texture catTexture;
     Animation catSprite;
+    CatState catstate;
 
-    public Cat(String name, boolean alive, int health) {
+    public Cat(String name, int health, CatState catstate) {
         this.name = name;
-        this.alive = alive;
+        this.catstate = CatState.alive;
         this.health = health;
-        if (alive) {
-            cat_walk(name);
-        }
     }
 
+    public enum CatState {
+        alive,
+        attacking,
+        dead,
+        victorious,
+    }
 
     public void render() {
         catSprite.getFrame();
     }
 
-    public Animation cat_walk(String name) {
-        try {
-            catTexture = new Texture(name + "_walk.png");
-        } catch(GdxRuntimeException e) {
-            catTexture = new Texture("paige_walk.png");
+
+
+    public Animation pickAnimation(String name) {
+        if(catstate == CatState.alive) {
+            try {
+                catTexture = new Texture(name + "_walk.png");
+            } catch(GdxRuntimeException e) {
+                catTexture = new Texture("paige_walk.png");
+            }
+            TextureRegion catSrc = new TextureRegion(catTexture, 400, 42);
+            catSprite = new Animation(catSrc, 5, 0.8f);
+            return catSprite;
         }
-        TextureRegion catSrc = new TextureRegion(catTexture, 400, 42);
-        catSprite = new Animation(catSrc, 5, 0.8f);
+
+        if(catstate == CatState.dead) {
+            try {
+                catTexture = new Texture(name + "_shleep.png");
+            } catch(GdxRuntimeException e) {
+                catTexture = new Texture("paige_shleep.png");
+            }
+            TextureRegion catSrc = new TextureRegion(catTexture, 160, 42);
+            catSprite = new Animation(catSrc, 2, 1.5f);
+        }
+
+        if(catstate == CatState.victorious) {
+            try {
+                catTexture = new Texture(name + "_idle.png");
+            } catch(GdxRuntimeException e) {
+                catTexture = new Texture("mochi_idle.png");
+            }
+            TextureRegion catSrc = new TextureRegion(catTexture, 770, 60);
+            catSprite = new Animation(catSrc, 14, 1.5f);
+        }
         return catSprite;
     }
 
-    public void update() {
-
+    public void update(float deltaTime) {
+        catSprite.update(deltaTime);
     }
 
 
