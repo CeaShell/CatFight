@@ -17,6 +17,7 @@ public class RPSCatFight extends ApplicationAdapter {
 	public static int WIDTH = 1040;
 	public static int HEIGHT = 585;
 	public static Font FONT;
+	public static Font whiteFont;
 
 	@Override
 	public void create () {
@@ -24,7 +25,8 @@ public class RPSCatFight extends ApplicationAdapter {
 		gsm = new GameStateManager();
 		sr = new ShapeRenderer();
 		gsm.push(new PlayState(gsm));
-		FONT = new Font();
+		FONT = new Font(new Texture("blue_font.png"));
+		whiteFont = new Font(new Texture("white_font.png"));
 	}
 
 	@Override

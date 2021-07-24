@@ -1,7 +1,6 @@
 package com.ceashell.rpscatfight;
 
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
@@ -17,9 +16,10 @@ public class Font {
     private static final int DEFAULT_HEIGHT = 7;
     TextureRegion[] chars;
     Texture source;
+//    Texture texture;
 
-    public Font(){
-        source = new Texture("blue_font.png");
+    public Font(Texture texture){
+        source = texture;
         chars = new TextureRegion[40]; // 39
         int cnt = 0;
         int y = 0;
@@ -80,6 +80,12 @@ public class Font {
         }
     }
 
+    //To draw something in the middle, I need to get the width of the total string
+    //I can do this by taking each of the chars and adding their widths
+    //Then, I just get the offset by subtracting the text width from the width of the bounds and dividing by 2
+    //This does not account for word wrapping... Maybe I remove the rect and just have multiple .drawMiddle calls?
+    //Or maybe I get the total width and the # of times it wraps is just width / rect width, and use that?
+    //We'll see
     public void drawMiddle(SpriteBatch batch, String text, Rectangle rect, float xScale, float yScale){
 
         String[] words = text.toUpperCase(Locale.ROOT).split(" ");

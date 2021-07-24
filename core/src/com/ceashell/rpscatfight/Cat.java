@@ -1,6 +1,7 @@
 package com.ceashell.rpscatfight;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
@@ -11,10 +12,11 @@ public class Cat {
     Animation catSprite;
     CatState catstate;
 
-    public Cat(String name, int health, CatState catstate) {
+    public Cat(String name, int health) {
         this.name = name;
         this.catstate = CatState.alive;
         this.health = health;
+        this.catSprite = pickAnimation(this.name);
     }
 
     public enum CatState {
@@ -24,11 +26,9 @@ public class Cat {
         victorious,
     }
 
-    public void render() {
-        catSprite.getFrame();
-    }
-
-
+//    public void render(SpriteBatch sb) {
+//        sb.draw(catSprite.getFrame(), re;
+//    }
 
     public Animation pickAnimation(String name) {
         if(catstate == CatState.alive) {
