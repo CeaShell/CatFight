@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 public class Font {
-    public static final int SPACING_X = 0;
+    public static final int SPACING_X = 2;
     public static final int SPACING_Y = 2;
     private static final int DEFAULT_WIDTH = 7;
     private static final int DEFAULT_HEIGHT = 7;
@@ -20,7 +20,7 @@ public class Font {
 
     public Font(Texture texture){
         source = texture;
-        chars = new TextureRegion[40]; // 39
+        chars = new TextureRegion[43]; // 42
         int cnt = 0;
         int y = 0;
         int x = 0;
@@ -168,7 +168,7 @@ public class Font {
         else {
             switch(c){
                 case ' ' : {
-                    return 39;
+                    return 42;
                 }
                 case 46: {
                     return 36; //period
@@ -179,6 +179,16 @@ public class Font {
                 case 63 : {
                     return 37; //question mark
                 }
+                case 44 : {
+                    return 39; //comma
+                }
+                case 59 : {
+                    return 40; //semicolon
+                }
+                case 58 : {
+                    return 41; //colon
+                }
+
                 default : {
                     System.out.println("Letter of " + c + " is not valid!");
                 }

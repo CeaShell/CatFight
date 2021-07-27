@@ -9,23 +9,18 @@ import com.badlogic.gdx.math.Rectangle;
 
 import java.util.Random;
 
-import static com.ceashell.rpscatfight.Cat.CatState.dead;
-import static com.ceashell.rpscatfight.Cat.CatState.victorious;
+import static com.ceashell.rpscatfight.Cat.CatState.*;
 import static com.ceashell.rpscatfight.RPSCatFight.FONT;
 import static com.ceashell.rpscatfight.RPSCatFight.whiteFont;
-
 
 public class PlayState extends State {
     SpriteBatch sb;
     Texture background;
+    Texture arena;
     ShapeRenderer sr;
     public String[] cats;
     int money;
-    Rectangle cat1Rect;
-    Rectangle cat2Rect;
     Texture healthBar;
-    String catName1;
-    String catName2;
     Cat cat1;
     Cat cat2;
     boolean finished;
@@ -41,21 +36,22 @@ public class PlayState extends State {
     String yourChoice;
     int roundSection;
     String thingYouDid;
-
-
+    int r;
+    int g;
+    int b;
+    int[] color;
+    int colorCount;
 
     public PlayState(GameStateManager gsm) {
         super(gsm);
         sb = new SpriteBatch();
-        cats = new String[] {"Paige", "Sabrina", "Cheesecake", "Marshmallow", "Tiger", "Chub Chub", "Elwood", "Coco", "Mochi"};
-        background = new Texture("arena.png");
+        cats = new String[] {"Paige", "Tiger", "Elwood", "Coco", "Mochi"}; //sabrina, cheesecake, marshmallow, chub chub
+        background = new Texture("arena_bg.png");
+        arena = new Texture("arena.png");
         money = 500;
-        catName1 = getRandomCat();
-        catName2 = getRandomCat();
-        cat1 = new Cat(catName1, 100);
-        cat2 = new Cat(catName2, 100);
-        cat1Rect = new Rectangle(150, 250, 240, 126);
-        cat2Rect = new Rectangle(850, 250, 240, 126);
+
+        cat1 = new Cat(getRandomCat(), 100, new Rectangle(200, 250, 240, 126));
+        cat2 = new Cat(getRandomCat(), 100, new Rectangle(850, 250, 240, 126));
         healthBar = new Texture("bar.png");
         finished = false;
         rock = new Texture("rock.png");
@@ -64,6 +60,8 @@ public class PlayState extends State {
         rpsTime = true;
         RPS = new String[] {"rock", "paper", "scissors"};
         roundSection = 1;
+        colorCount = 0;
+        randomTint();
     }
 
 
@@ -81,54 +79,47 @@ public class PlayState extends State {
         return RPS[index];
     }
 
+    public int[] randomTint() {
+        Random random = new Random();
+        r = random.nextInt(2);
+        g = random.nextInt(2);
+        b = random.nextInt(2);
+        color = new int[] {r, g, b};
+        return color;
+    }
+
     @Override
     public void render(SpriteBatch sb, ShapeRenderer sr) {
         sb.begin();
-        if (cat1.catstate == victorious) {
-            cat1Rect.height = 180;
-            cat1Rect.width = 165;
-        }
-        if (cat2.catstate == victorious) {
-            cat2Rect.height = 180;
-            cat2Rect.width = 165;
-        }
-        if (computerChoice == null) {
-            computerChoice = getRandomRPS();
-        }
+        sb.setColor(color[0], color[1], color[2], 1);
         sb.draw(background, 0, 0, RPSCatFight.WIDTH, RPSCatFight.HEIGHT);
-        FONT.drawMiddle(sb, "Fight kitties FIGHT!", 0,475, RPSCatFight.WIDTH, 100, 6, 6);
-        sb.draw(cat1.catSprite.getFrame(), cat1Rect.x, cat1Rect.y, cat1Rect.width, cat1Rect.height);
-        sb.draw(cat2.catSprite.getFrame(), cat2Rect.x, cat2Rect.y, -cat2Rect.width, cat2Rect.height);
+        sb.setColor(1,1,1,0.9f);
+        sb.draw(background, 0, 0, RPSCatFight.WIDTH, RPSCatFight.HEIGHT);
+        sb.setColor(1,1,1,1);
+        sb.draw(arena, 0, 0, RPSCatFight.WIDTH, RPSCatFight.HEIGHT);
+        whiteFont.drawMiddle(sb, "Fight kitties FIGHT!", 0,475, RPSCatFight.WIDTH, 100, 6, 6);
+        sb.draw(cat1.catSprite.getFrame(), cat1.bounds.x, cat1.bounds.y, cat1.bounds.width, cat1.bounds.height);
+        sb.draw(cat2.catSprite.getFrame(), cat2.bounds.x, cat2.bounds.y, -cat2.bounds.width, cat2.bounds.height);
         sb.draw(healthBar, 100, 470, cat1.health*2.5f, 10);
         sb.draw(healthBar, 940, 470, cat2.health * -2.5f, 10);
-        if (cat1.health <= 0 && !finished) {
-            cat1.catstate = Cat.CatState.dead;
-            cat2.catstate = Cat.CatState.victorious;
-            cat1.pickAnimation(catName1);
-            cat2.pickAnimation(catName2);
-            finished = true;
-        }
-        if (cat2.health <= 0 && !finished) {
-            cat2.catstate = Cat.CatState.dead;
-            cat1.catstate = Cat.CatState.victorious;
-            cat1.pickAnimation(catName1);
-            cat2.pickAnimation(catName2);
-            finished = true;
-        }
+
+
         if (cat1.health <= 20 && cat1.health > 0 || cat2.health <= 20 && cat2.health > 0) {
             FONT.drawMiddle(sb, "FINISH HIM!", 0, 330, RPSCatFight.WIDTH, 30, 6, 6);
         }
         if(finished){
             if(cat1.catstate == dead){
-                FONT.drawMiddle(sb, catName1 + " is Dead! Victory goes to " + catName2, 0, 350, RPSCatFight.WIDTH, 50, 3, 3);
+                FONT.drawMiddle(sb, cat1.name + " is Dead! Victory goes to " + cat2.name, 0, 350, RPSCatFight.WIDTH, 50, 3, 3);
             } else if(cat2.catstate == dead){
-                FONT.drawMiddle(sb, catName2 + " is Dead! Victory goes to " + catName1, 0, 350, RPSCatFight.WIDTH, 50, 3, 3);
+                FONT.drawMiddle(sb, cat2.name + " is Dead! Victory goes to " + cat1.name, 0, 350, RPSCatFight.WIDTH, 50, 3, 3);
             }
         }
+        FONT.draw(sb, "Round section " + roundSection, new Rectangle(100,100,100,100), 2, 2);
         sb.end();
         if (rpsTime == true) {
             drawRound(sb);
         }
+
     }
 
     @Override
@@ -136,43 +127,70 @@ public class PlayState extends State {
         if (Gdx.input.justTouched()) {
             float x = Gdx.input.getX();
             float y = RPSCatFight.HEIGHT - Gdx.input.getY();
-
-            if (cat1Rect.contains(x, y)) {
-                System.out.println("Ouch! Cat1");
-                cat1.health -= 5;
+            if (!rpsTime || roundSection == 2) {
+                if (cat1.bounds.contains(x, y)) {
+                    System.out.println("Ouch! Cat1");
+                    cat1.health -= 5;
+                } else if (cat2.bounds.contains(x, y)) {
+                    System.out.println("Ouch! Cat2");
+                    cat2.health -= 5;
+                }
             }
-            else if(cat2Rect.contains(x,y)) {
-                System.out.println("Ouch! Cat2");
-                cat2.health -= 5;
+            else {
+                if (roundSection == 1) {
+                    if (rockBounds.contains(x, y)) {
+                        System.out.println("rock");
+                        yourChoice = "rock";
+                        //rpsTime = false;
+                        roundSection++;
+                    } else if (paperBounds.contains(x, y)) {
+                        System.out.println("paper");
+                        yourChoice = "paper";
+                        //rpsTime = false;
+                        roundSection++;
+                    } else if (scissorBounds.contains(x, y)) {
+                        System.out.println("scissors");
+                        yourChoice = "scissors";
+                        //rpsTime = false;
+                        roundSection++;
+                    }
+                }
+                if (roundSection == 2) {
+                    thingYouDid = checkWin();
+                    switch (thingYouDid) {
+                        case "win":
+                            cat1.catstate = attacking;
+                            cat2.catstate = alive;
+                            cat1.changeAnimation = true;
+                            cat2.changeAnimation = true;
+                            break;
+                        case "lose":
+                            cat2.catstate = attacking;
+                            cat1.catstate = alive;
+                            cat2.changeAnimation = true;
+                            cat1.changeAnimation = true;
+                            break;
+                        case "tie":
+                            cat2.catstate = attacking;
+                            cat1.catstate = attacking;
+                            cat1.changeAnimation = true;
+                            cat2.changeAnimation = true;
+                            break;
+                    }
+                }
+//                    Rectangle screen = new Rectangle(0,0, RPSCatFight.WIDTH, RPSCatFight.HEIGHT);
+//                    if (screen.contains(x,y)) {
+//                        rpsTime = false;
+//                    }
+//                }
             }
-            else if(rockBounds.contains(x,y)) {
-                System.out.println("rock");
-                yourChoice = "rock";
-                //rpsTime = false;
-                roundSection++;
-            }
-            else if(paperBounds.contains(x,y)) {
-                System.out.println("paper");
-                yourChoice = "paper";
-                //rpsTime = false;
-                roundSection++;
-            }
-            else if(scissorBounds.contains(x,y)) {
-                System.out.println("scissors");
-                yourChoice = "scissors";
-                //rpsTime = false;
-                roundSection++;
-            }
-            System.out.println("Click done " + x + " " + y);
+            //System.out.println("Click done " + x + " " + y);
 
         }
         if(Gdx.input.isKeyJustPressed(Input.Keys.SPACE)){
-            System.out.println("Ouch! Cat2");
-            rpsTime = true;
+            rpsTime = !rpsTime;
             roundSection = 1;
             computerChoice = null;
-            System.out.println( Gdx.graphics.getDisplayMode().width);
-            System.out.println( Gdx.graphics.getDisplayMode().height);
         }
     }
 
@@ -183,7 +201,7 @@ public class PlayState extends State {
             sb.setColor(1, 1, 1, 0.9f);
             sb.draw(bg, 0, 0, RPSCatFight.WIDTH, RPSCatFight.HEIGHT);
             sb.setColor(1, 1, 1, 1);
-            whiteFont.drawMiddle(sb, "Rock paper or scissors?", 220, 400, 600, 30, 4, 4);
+            whiteFont.drawMiddle(sb, "Rock, paper, or scissors?", 220, 400, 600, 30, 4, 4);
             String[] buttons = {"rock", "paper", "scissors"};
             int spacing = 30;
             int size = 120;
@@ -206,9 +224,9 @@ public class PlayState extends State {
         }
 
         if (roundSection == 2) {
-            sb.setColor(1, 1, 1, 0.9f);
-            sb.draw(bg, 0, 0, RPSCatFight.WIDTH, RPSCatFight.HEIGHT);
-            sb.setColor(1, 1, 1, 1);
+//            sb.setColor(1, 1, 1, 0.9f);
+//            sb.draw(bg, 0, 0, RPSCatFight.WIDTH, RPSCatFight.HEIGHT);
+//            sb.setColor(1, 1, 1, 1);
             thingYouDid = checkWin();
             whiteFont.drawMiddle(sb, "You " + thingYouDid + "!", 0, 400, RPSCatFight.WIDTH, 40, 6, 6);
         }
@@ -256,9 +274,31 @@ public class PlayState extends State {
 
     @Override
     public void update(float deltaTime) {
-        handleInput();
         cat1.update(deltaTime);
         cat2.update(deltaTime);
+        handleInput();
+        if (computerChoice == null) {
+            computerChoice = getRandomRPS();
+        }
+
+        if (colorCount <= 10) {
+            colorCount++;
+            if (colorCount == 10) {
+                colorCount = 0;
+                randomTint();
+            }
+        }
+
+        if (cat1.health <= 0 && !finished) {
+            cat1.catstate = Cat.CatState.dead;
+            cat2.catstate = Cat.CatState.victorious;
+            finished = true;
+        }
+        if (cat2.health <= 0 && !finished) {
+            cat2.catstate = Cat.CatState.dead;
+            cat1.catstate = Cat.CatState.victorious;
+            finished = true;
+        }
     }
 
     @Override
